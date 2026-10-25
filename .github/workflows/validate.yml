@@ -1,0 +1,22 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Validate package specs
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+        git fetch --prune --unshallow
+    - name: Validate 🔧
+      run: |
+        curl https://raw.githubusercontent.com/macaroni-os/anise/refs/heads/geaaru/contrib/config/get_anise_root.sh | sudo sh
+        sudo anise upgrade -y && sudo anise i -y app-admin/anise-build
+        make validate
