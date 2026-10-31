@@ -1,10 +1,13 @@
 image: "macaronios/terragon-minimal-devel:latest-amd64"
 env:
-- ANISE_YES=true
-- ANISE_NOLOCK=true
-- HTTP_TIMEOUT=0
+- LC_ALL=POSIX
+- MFS=/mfs
+- MFS_HOST={{ .Values.mfs_host }}
+- MFS_TARGET={{ .Values.mfs_target }}
+- MFS_ARCH={{ .Values.mfs_arch }}
 prelude:
 - >-
+  export HTTP_TIMEOUT=0
   anise repo update &&
   anise i -y --force --sync-repos
   sys-devel/make
@@ -24,6 +27,9 @@ prelude:
   virtual/os-headers
   dev-libs/popt
   net-misc/rsync
+  app-arch/tar
+  app-arch/xz-utils
+  net-misc/curl
   net-misc/wget &&
   anise cleanup --purge-repos &&
   macaronictl env-update &&
@@ -36,4 +42,10 @@ prelude:
   eval 'locale-gen || true' &&
   cd / && rm -rf /anisebuild &&
   mkdir -p /{{ .Values.name }}/
+# Prepare the MFS directories
+- >-
+  mkdir -p ${MFS}/cross-tools &&
+  mkdir -p ${MFS}/tools/lib -p &&
+  mkdir -p ${MFS}/sources -p
+  mkdir -p ${MFS}/build -p
 package_dir: /{{ .Values.name }}/
