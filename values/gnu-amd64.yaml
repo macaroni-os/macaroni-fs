@@ -1,0 +1,4 @@
+mfs_arch: x86_64
+mfs_host: x86_64-mfs-linux-gnu
+mfs_target: x86_64-mfs-linux-gnu
+mfs_cflags: ""
