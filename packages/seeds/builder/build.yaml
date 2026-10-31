@@ -1,0 +1,39 @@
+image: "macaronios/terragon-minimal-devel:latest-amd64"
+env:
+- ANISE_YES=true
+- ANISE_NOLOCK=true
+- HTTP_TIMEOUT=0
+prelude:
+- >-
+  anise repo update &&
+  anise i -y --force --sync-repos
+  sys-devel/make
+  gcc
+  binutils
+  sys-apps/texinfo
+  sys-apps/which
+  sys-apps/portage
+  sys-apps/diffutils
+  sys-devel/patch
+  sys-devel/m4
+  sys-devel/gcc-config
+  virtual/base
+  dev-libs/libpcre2
+  dev-libs/openssl
+  app-misc/ca-certificates
+  virtual/os-headers
+  dev-libs/popt
+  net-misc/rsync
+  net-misc/wget &&
+  anise cleanup --purge-repos &&
+  macaronictl env-update &&
+  source /etc/profile &&
+  /usr/bin/gcc-config 1 &&
+  source /etc/profile &&
+  eselect gcc set 1 &&
+  ln -s /usr/share/zoneinfo/Europe/Rome /etc/localtime &&
+  macaronictl env-update &&
+  eval 'locale-gen || true' &&
+  cd / && rm -rf /anisebuild &&
+  mkdir -p /{{ .Values.name }}/
+package_dir: /{{ .Values.name }}/
