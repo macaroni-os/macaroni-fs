@@ -1,0 +1,23 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- 'KVER={{ $v }}'
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/linux-${KVER}.tar.xz
+  https://www.kernel.org/pub/linux/kernel/v{{ join "" ( slice ( splitList "." $v ) 0 1 ) }}.x/linux-{{ $v }}.xz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/linux-${KVER}.tar.xz
+steps:
+# Install headers in the tools directory and in the pkgdir for anise
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  cd ${MFS}/build/linux-${KVER}/ &&
+  make mrproper &&
+  make ARCH=${MFS_ARCH} INSTALL_HDR_PATH=${MFS}/tools headers_install &&
+  make ARCH=${MFS_ARCH} INSTALL_HDR_PATH=/step1/{{ .Values.name }}/ headers_install
+package_dir: /step1/{{ .Values.name }}/
+requires:
+- category: seed
+  name: builder
+  version: '>=0'
