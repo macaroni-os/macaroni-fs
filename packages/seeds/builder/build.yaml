@@ -17,6 +17,7 @@ prelude:
   sys-apps/which
   sys-apps/portage
   sys-apps/diffutils
+  sys-apps/baselayout
   sys-devel/patch
   sys-devel/m4
   sys-devel/gcc-config
