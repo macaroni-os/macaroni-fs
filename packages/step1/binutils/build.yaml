@@ -1,0 +1,32 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the sources
+- >-
+  wget -O ${MFS}/sources/binutils-{{ $v }}.tar.xz https://ftp.gnu.org/gnu/binutils/binutils-{{ $v }}.tar.xz &&
+  cd ${MFS}/build/ &&
+  tar -xzvf ${MFS}/sources/binutils-{{ $v }}.tar.xz
+steps:
+# Build and install package
+- >-
+  cd ${MFS}/build/binutils-{{ $v }}/ &&
+  mkdir binutils-build &&
+  cd binutils-build &&
+  AR=ar AS=as ../configure
+  --prefix=/cross-tools
+  --host=${MFS_HOST}
+  --target=${MFS_TARGET}
+  --with-sysroot=${MFS}
+  --with-lib-path=/tools/lib
+  --disable-nls
+  --disable-static
+  --enable-64-bit-bfd
+  --disable-multilib
+  --disable-werror &&
+  make &&
+  make DESTDIR="${MFS}" install &&
+  make DESTDIR="/step1/{{ .Values.name }}" install
+package_dir: /step1/{{ .Values.name }}/
+requires:
+- category: step1
+  name: linux-headers
+  version: '>=0'

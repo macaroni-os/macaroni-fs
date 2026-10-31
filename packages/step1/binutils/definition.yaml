@@ -1,0 +1,9 @@
+name: binutils
+version: "2.46.0"
+category: step1
+description: "MFS Step1: binutils"
+uri:
+  - "https://sourceware.org/binutils/"
+license: "GPL-3.0-or-later"
+labels:
+  original.package.version: 2.46.0
