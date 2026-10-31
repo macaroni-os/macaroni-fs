@@ -8,7 +8,7 @@ general:
   show_build_output: true
 
 system:
-  tmpdir_base: "/anisemp"
+  tmpdir_base: "/anisetmp"
 
 repos_confdir:
   - /etc/anise/repos.conf.d
