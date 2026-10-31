@@ -7,7 +7,7 @@ prelude:
   wget -O ${MFS}/sources/linux-${KVER}.tar.xz
   https://www.kernel.org/pub/linux/kernel/v{{ join "" ( slice ( splitList "." $v ) 0 1 ) }}.x/linux-{{ $v }}.tar.xz &&
   cd ${MFS}/build/ &&
-  tar -xzf ${MFS}/sources/linux-${KVER}.tar.xz
+  tar -xJf ${MFS}/sources/linux-${KVER}.tar.xz
 steps:
 # Install headers in the tools directory and in the pkgdir for anise
 - >-
