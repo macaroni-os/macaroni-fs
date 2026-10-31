@@ -5,7 +5,7 @@ prelude:
 # Download and unpack the package
 - >-
   wget -O ${MFS}/sources/linux-${KVER}.tar.xz
-  https://www.kernel.org/pub/linux/kernel/v{{ join "" ( slice ( splitList "." $v ) 0 1 ) }}.x/linux-{{ $v }}.xz &&
+  https://www.kernel.org/pub/linux/kernel/v{{ join "" ( slice ( splitList "." $v ) 0 1 ) }}.x/linux-{{ $v }}.tar.xz &&
   cd ${MFS}/build/ &&
   tar -xzf ${MFS}/sources/linux-${KVER}.tar.xz
 steps:
