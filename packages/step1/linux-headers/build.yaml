@@ -15,7 +15,7 @@ steps:
   cd ${MFS}/build/linux-${KVER}/ &&
   make mrproper &&
   make ARCH=${MFS_ARCH} INSTALL_HDR_PATH=${MFS}/tools headers_install &&
-  make ARCH=${MFS_ARCH} INSTALL_HDR_PATH=/step1/{{ .Values.name }}/ headers_install
+  make ARCH=${MFS_ARCH} INSTALL_HDR_PATH=/step1/{{ .Values.name }}/tools headers_install
 package_dir: /step1/{{ .Values.name }}/
 requires:
 - category: seed
