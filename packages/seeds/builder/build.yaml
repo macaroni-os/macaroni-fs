@@ -21,6 +21,7 @@ prelude:
   sys-devel/patch
   sys-devel/m4
   sys-devel/gcc-config
+  sys-kernel/linux-headers
   virtual/base
   dev-libs/libpcre2
   dev-libs/openssl
