@@ -18,7 +18,7 @@ ARCH?=amd64
 REPO_NAME?=mfs
 REPO_DESC?=Macaroni OS MFS
 REPO_URL??=https://dl.macaronios.org/repos/mfs/
-REPO_VALUES?=
+REPO_VALUES?=./values/gnu-amd64.yaml
 export REPO_VALUES
 CONFIG?=--config conf/anise.yaml
 
