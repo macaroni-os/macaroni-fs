@@ -46,6 +46,9 @@ build: clean genidx
 	mkdir -p $(ROOT_DIR)/build
 	$(SUDO) $(ANISE_BUILD) build $(BUILD_ARGS) --tree=$(TREE) $(PACKAGES) --destination $(ROOT_DIR)/build --backend $(BACKEND) --concurrency $(CONCURRENCY) --compression $(COMPRESSION)
 
+.PHONY: rebuild
+rebuild: build
+
 .PHONY: genidx
 genidx:
 	$(SUDO) $(ANISE_BUILD) tree genidx $(GENIDX_ARGS) --tree=$(TREE)
