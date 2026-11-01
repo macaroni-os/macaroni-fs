@@ -38,6 +38,8 @@ prelude:
   macaronictl env-update &&
   eval 'locale-gen || true' &&
   cd / && rm -rf /anisebuild &&
+  eval 'mkdir /tmp || true' &&
+  chmod a+rwx /tmp &&
   mkdir -p /{{ .Values.name }}/
 
 package_dir: /{{ .Values.name }}/
