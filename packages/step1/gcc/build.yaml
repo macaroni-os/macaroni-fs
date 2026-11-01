@@ -1,0 +1,73 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  mkdir gcc-build && cd gcc-build
+  &&
+  AR=ar LDFLAGS="-Wl,-rpath,${MFS}/cross-tools/lib"
+  {{- $gcc_arch := .Values.gcc_arch | default "" }}
+  {{- $gcc_cpu := .Values.gcc_cpu | default "" }}
+  {{- $gcc_tune := .Values.gcc_tune | default "" }}
+  {{- $gcc_fpu := .Values.gcc_fpu | default "" }}
+  {{- $gcc_float := .Values.gcc_float | default "" }}
+  ../configure
+  {{- if ( ne $gcc_arch "" ) }}
+  --with-arch={{ $gcc_arch }}
+  {{- end }}
+  {{- if ( ne $gcc_cpu "" ) }}
+  --with-cpu={{ $gcc_cpu }}
+  {{- end }}
+  {{- if ( new $gcc_tune "" ) }}
+  --with-tune={{ $gcc_tune }}
+  {{- end }}
+  {{- if ( new $gcc_fpu "" ) }}
+  --with-fpu={{ $gcc_fpu }}
+  {{- end }}
+  {{- if ( new $gcc_float "" ) }}
+  --with-float={{ $gcc_float }}
+  {{- end }}
+  --prefix=/cross-tools
+  --build=${MFS_HOST}
+  --host=${MFS_HOST}
+  --target=${MFS_TARGET}
+  --with-sysroot=${MFS}
+  --with-native-system-header-dir=/usr/include
+  --disable-shared
+  --without-headers
+  --with-newlib
+  --enable-initfini-array
+  --disable-decimal-float
+  --disable-libgomp
+  --disable-libssp
+  --disable-libatomic
+  --disable-libitm
+  --disable-libsanitizer
+  --disable-libquadmath
+  --disable-libvtv
+  --disable-libcilkrts
+  --disable-libstdcxx
+  --disable-threads
+  --disable-multilib
+  --enable-languages=c,c++
+  --with-mpfr=${MFS}/cross-tools
+  --with-gmp=${MFS}/cross-tools
+  --with-mpc=${MFS}/cross-tools
+  &&
+  make all-gcc all-target-libgcc &&
+  make DESTDIR="${MFS}" install-gcc install-target-libgcc &&
+  make DESTDIR="/step1/{{ .Values.name }}" install-gcc install-target-libgcc
+
+package_dir: /step1/{{ .Values.name }}
+requires:
+- category: step1
+  name: mpc
+  version: '>=0'
