@@ -1,0 +1,9 @@
+name: gmp
+version: 6.3.0
+category: step1
+description: 'MFS Step1: gmp'
+uri:
+- https://www.gnu.org/software/gmp/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: 6.3.0
