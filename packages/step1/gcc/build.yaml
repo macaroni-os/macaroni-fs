@@ -26,13 +26,13 @@ steps:
   {{- if ( ne $gcc_cpu "" ) }}
   --with-cpu={{ $gcc_cpu }}
   {{- end }}
-  {{- if ( new $gcc_tune "" ) }}
+  {{- if ( ne $gcc_tune "" ) }}
   --with-tune={{ $gcc_tune }}
   {{- end }}
-  {{- if ( new $gcc_fpu "" ) }}
+  {{- if ( ne $gcc_fpu "" ) }}
   --with-fpu={{ $gcc_fpu }}
   {{- end }}
-  {{- if ( new $gcc_float "" ) }}
+  {{- if ( ne $gcc_float "" ) }}
   --with-float={{ $gcc_float }}
   {{- end }}
   --prefix=/cross-tools
