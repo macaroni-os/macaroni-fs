@@ -1,15 +1,4 @@
 image: "macaronios/terragon-minimal-devel:latest-amd64"
-env:
-- LC_ALL=POSIX
-- MFS=/mfs
-- MFS_HOST={{ .Values.mfs_host }}
-- MFS_TARGET={{ .Values.mfs_target }}
-- MFS_ARCH={{ .Values.mfs_arch }}
-# If this variable is not set, configure scripts may attempt to load
-# configuration items specific to some distributions from /usr/share/config.site
-# on the host system. Override it prevent potential contamination from the
-# host.
-- CONFIG_SITE=/mfs/usr/share/config.site
 prelude:
 - >-
   export HTTP_TIMEOUT=0
@@ -51,18 +40,4 @@ prelude:
   cd / && rm -rf /anisebuild &&
   mkdir -p /{{ .Values.name }}/
 
-# Prepare the MFS directories
-- >-
-  install -d ${MFS}/cross-tools &&
-  {{- if eq .Values.mfs_bits 64 }}
-  install -d ${MFS}/lib64 &&
-  install -d ${MFS}/usr/lib64 &&
-  {{- end }}
-  install -d ${MFS}/lib &&
-  install -d ${MFS}/usr/lib &&
-  install -d ${MFS}/{dev,proc,run,sys,etc,var} &&
-  install -m 1777 -d ${MFS}/tmp ${MFS}/var/tmp &&
-  install -d ${MFS}/tools/lib  &&
-  install -d ${MFS}/sources &&
-  install -d ${MFS}/build
 package_dir: /{{ .Values.name }}/
