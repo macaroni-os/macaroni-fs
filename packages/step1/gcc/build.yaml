@@ -3,7 +3,7 @@ prelude:
 # Download and unpack the package
 - >-
   wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
-  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz &&
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}/{{ .Values.name }}-{{ $v }}.tar.xz &&
   cd ${MFS}/build/ &&
   tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
 steps:

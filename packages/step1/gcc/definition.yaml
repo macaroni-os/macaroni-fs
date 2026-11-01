@@ -1,5 +1,5 @@
 name: gcc
-version: 16.2.0+3
+version: 16.2.0+4
 category: step1
 description: 'MFS Step1: GCC'
 uri:
