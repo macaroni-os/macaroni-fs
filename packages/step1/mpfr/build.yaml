@@ -1,0 +1,28 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  LDFLAGS="-Wl,-rpath,${MFS}/cross-tools/lib"
+  ./configure
+  --prefix=/cross-tools
+  --disable-static
+  --with-gmp=${MFS}/cross-tools
+  &&
+  make &&
+  make DESTDIR="${MFS}" install &&
+  make DESTDIR="/step1/{{ .Values.name }}" install
+
+package_dir: /step1/{{ .Values.name }}/
+requires:
+- category: step1
+  name: gmp
+  version: '>=0'

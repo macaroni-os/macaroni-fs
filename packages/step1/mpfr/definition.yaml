@@ -1,0 +1,9 @@
+name: mpfr
+version: 4.2.2
+category: step1
+description: 'MFS Step1: mpfr'
+uri:
+- https://www.mpfr.org/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: 4.2.2
