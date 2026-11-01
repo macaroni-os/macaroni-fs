@@ -18,7 +18,7 @@ steps:
   &&
   make &&
   make check &&
-  make DESTDIR="${MFS}" install &&
+  make install &&
   make DESTDIR="/step1/{{ .Values.name }}" install
 
 package_dir: /step1/{{ .Values.name }}/mfs
