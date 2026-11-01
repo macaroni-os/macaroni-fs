@@ -1,5 +1,5 @@
 name: binutils
-version: 2.46.0+3
+version: 2.46.0+4
 category: step1
 description: 'MFS Step1: binutils'
 uri:
