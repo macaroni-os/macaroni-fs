@@ -9,7 +9,7 @@ env:
 # on the host system. Override it prevent potential contamination from the
 # host.
 - CONFIG_SITE=/mfs/usr/share/config.site
-package_dir: /mfs/
+package_dir: /mfs
 steps:
 # Prepare the MFS directories
 - >-
