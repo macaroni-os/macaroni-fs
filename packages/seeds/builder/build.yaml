@@ -4,6 +4,8 @@ prelude:
   export HTTP_TIMEOUT=0
   anise repo update &&
   anise i -y --force --sync-repos
+  app-admin/whip
+  sys-apps/whip-catalog
   sys-devel/make
   gcc
   binutils
@@ -28,6 +30,7 @@ prelude:
   app-arch/xz-utils
   net-misc/curl
   net-misc/wget &&
+  anise miner ri virtual/base &&
   anise cleanup --purge-repos &&
   macaronictl env-update &&
   source /etc/profile &&
