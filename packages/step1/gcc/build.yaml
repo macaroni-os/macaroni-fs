@@ -35,7 +35,7 @@ steps:
   {{- if ( ne $gcc_float "" ) }}
   --with-float={{ $gcc_float }}
   {{- end }}
-  --prefix=/cross-tools
+  --prefix=${MFS}/cross-tools
   --build=${MFS_HOST}
   --host=${MFS_HOST}
   --target=${MFS_TARGET}
@@ -66,7 +66,7 @@ steps:
   make DESTDIR="${MFS}" install-gcc install-target-libgcc &&
   make DESTDIR="/step1/{{ .Values.name }}" install-gcc install-target-libgcc
 
-package_dir: /step1/{{ .Values.name }}
+package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1
   name: mpc
