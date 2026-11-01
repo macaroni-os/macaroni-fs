@@ -8,6 +8,7 @@ prelude:
 steps:
 # Build and install package
 - >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
   export PATH=${MFS}/tools/bin:/usr/bin:/bin &&
   cd ${MFS}/build/binutils-{{ $v }}/ &&
   mkdir binutils-build &&
