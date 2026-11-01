@@ -4,7 +4,7 @@ prelude:
 - >-
   wget -O ${MFS}/sources/binutils-{{ $v }}.tar.xz https://ftp.gnu.org/gnu/binutils/binutils-{{ $v }}.tar.xz &&
   cd ${MFS}/build/ &&
-  tar -xJvf ${MFS}/sources/binutils-{{ $v }}.tar.xz
+  tar -xJf ${MFS}/sources/binutils-{{ $v }}.tar.xz
 steps:
 # Build and install package
 - >-
