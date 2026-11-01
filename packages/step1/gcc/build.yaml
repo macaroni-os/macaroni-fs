@@ -63,7 +63,7 @@ steps:
   --with-mpc=${MFS}/cross-tools
   &&
   make all-gcc all-target-libgcc &&
-  make DESTDIR="${MFS}" install-gcc install-target-libgcc &&
+  make install-gcc install-target-libgcc &&
   make DESTDIR="/step1/{{ .Values.name }}" install-gcc install-target-libgcc
 
 package_dir: /step1/{{ .Values.name }}/mfs
