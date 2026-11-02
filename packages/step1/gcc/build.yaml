@@ -6,6 +6,9 @@ prelude:
   https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}/{{ .Values.name }}-{{ $v }}.tar.xz &&
   cd ${MFS}/build/ &&
   tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+
+# error: bootstrapping with --disable-libstdcxx is not supported
+# --disable-libstdcxx
 steps:
 - >-
   mkdir -p /step1/{{ .Values.name }}/ &&
@@ -54,7 +57,6 @@ steps:
   --disable-libquadmath
   --disable-libvtv
   --disable-libcilkrts
-  --disable-libstdcxx
   --disable-threads
   --disable-multilib
   --enable-languages=c,c++
