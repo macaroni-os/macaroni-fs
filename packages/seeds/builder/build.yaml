@@ -17,6 +17,7 @@ prelude:
   sys-apps/coreutils
   sys-devel/patch
   sys-devel/m4
+  sys-devel/bison
   sys-devel/gcc-config
   sys-kernel/linux-headers
   virtual/base
