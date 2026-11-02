@@ -1,0 +1,57 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the sources plus the LFS patches
+- >-
+  wget -O ${MFS}/sources/glibc-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/glibc/glibc-{{ $v }}.tar.xz &&
+  wget -O ${MFS}/sources/glibc-fhs-1.patch
+  https://www.linuxfromscratch.org/patches/lfs/development/glibc-fhs-1.patch &&
+  wget -O ${MFS}/sources/glibc-{{ $v }}-upstream_fixes-3.patch
+  https://www.linuxfromscratch.org/patches/lfs/development/glibc-{{ $v }}-upstream_fixes-3.patch &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/glibc-{{ $v }}.tar.xz
+steps:
+# Install and build package
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  {{- if eq .Values.mfs_bits 64 }}
+  ln -sfv ../lib/ld-linux-x86-64.so.2 ${MFS}/lib64 &&
+  ln -sfv ../lib/ld-linux-x86-64.so.2 ${MFS}/lib64/ld-lsb-x86-64.so.3 &&
+  {{- end }}
+  cd ${MFS}/build/glibc-{{ $v }} &&
+  patch -Np1 -i ${MFS}/sources/glibc-fhs-1.patch &&
+  patch -Np1 -i ${MFS}/sources/glibc-{{ $v }}-upstream_fixes-3.patch &&
+  mkdir -p build && cd build &&
+  echo "rootsbindir=/usr/sbin" > configparms &&
+  ../configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(../scripts/config.guess)
+  --disable-nscd
+  libc_cv_slibdir=/usr/lib
+  --enable-kernel=5.10
+  CC=${MFS_TARGET}-gcc
+  &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  sed '/RTLDLIST=/s@/usr@@g' -i ${MFS}/usr/bin/ldd &&
+  echo 'int main(){}' | ${MFS_TARGET}-gcc -x c - -v -Wl,--verbose &> dummy.log &&
+  readelf -l a.out | grep ': /lib' &&
+  grep -E -o 'S?crt[1in].o succeeded' dummy.log &&
+  grep "${MFS}/usr/lib/libc.so.6 succeeded" dummy.log &&
+  grep "found ld-linux" dummy.log &&
+  rm -f a.out dummy.log &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  sed '/RTLDLIST=/s@/usr@@g' -i "/step1/{{ .Values.name }}${MFS}/usr/bin/ldd" &&
+  {{- if eq .Values.mfs_bits 64 }}
+  mkdir -p "/step1/{{ .Values.name }}${MFS}/lib64" &&
+  ln -sf ../lib/ld-linux-x86-64.so.2 "/step1/{{ .Values.name }}${MFS}/lib64" &&
+  ln -sf ../lib/ld-linux-x86-64.so.2 "/step1/{{ .Values.name }}${MFS}/lib64/ld-lsb-x86-64.so.3" &&
+  {{- end }}
+  true
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: gcc
+  version: '>=0'
