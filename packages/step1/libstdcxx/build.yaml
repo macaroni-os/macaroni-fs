@@ -1,0 +1,44 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the GCC sources (Libstdc++ lives inside them)
+- >-
+  wget -O ${MFS}/sources/gcc-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/gcc/gcc-{{ $v }}/gcc-{{ $v }}.tar.xz &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/gcc-{{ $v }}.tar.xz
+steps:
+# Build and install package.
+# libstdc++'s standalone configure hardcodes ${libdir}/../lib64 into the
+# generated Makefiles on x86_64 GNU/Linux hosts (the terragon build image
+# ships /usr/lib64), while LFS 13.1 ch.5.6 assumes /usr/lib placement; the
+# gcc install-recursive recipe does not propagate command-line overrides
+# into the sub-makes (GNU Make 4.2.1), so rewrite the generated Makefiles
+# instead. That keeps the libraries in /usr/lib with the rest of the
+# sysroot and makes the .la removal below actually match (cross .la files
+# are harmful; the book removes them).
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/gcc-{{ $v }} &&
+  mkdir -p libstdcxx-build && cd libstdcxx-build &&
+  ../libstdc++-v3/configure
+  --host=${MFS_TARGET}
+  --build=$(../config.guess)
+  CXX=${MFS_TARGET}-gcc
+  --prefix=/usr
+  --disable-multilib
+  --disable-nls
+  --disable-libstdcxx-pch
+  --with-gxx-include-dir=/cross-tools/${MFS_TARGET}/include/c++/{{ $v }}
+  &&
+  make &&
+  find . -name Makefile -exec sed -i 's|${libdir}/../lib64|${libdir}|g' {} + &&
+  make DESTDIR=${MFS} install &&
+  rm -f ${MFS}/usr/lib/libstdc++*.la ${MFS}/usr/lib/libsupc++.la &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  rm -f "/step1/{{ .Values.name }}${MFS}/usr/lib/libstdc++"*.la "/step1/{{ .Values.name }}${MFS}/usr/lib/libsupc++.la"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: glibc
+  version: '>=0'
