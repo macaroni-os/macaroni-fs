@@ -1,7 +1,7 @@
 image: "macaronios/terragon-minimal-devel:latest-amd64"
 prelude:
 - >-
-  export HTTP_TIMEOUT=0
+  export HTTP_TIMEOUT=0 &&
   anise repo update &&
   anise upgrade -y &&
   anise i -y --force --sync-repos
