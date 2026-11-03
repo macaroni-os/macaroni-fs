@@ -13,7 +13,9 @@ packages.
 
 - `anise` and `app-admin/anise-build`;
 - a working Docker daemon - the build backend runs each package in a
-  container seeded from the spec's seed image.
+  container seeded from the spec's seed image. In alternative could
+  be exported the `DOCKER_HOST=<node>:2376` environment variable to
+  point to a remote Docker daemon.
 
 ### Validate the specs
 
@@ -38,11 +40,6 @@ make build PACKAGES=step1/gcc
 
 Notes:
 
-- `make build` with an empty `PACKAGES` selects nothing and exits 0 with
-  `No packages selected for build!`. `anise-build build --all` currently
-  reports the same despite selecting the whole tree (macaroni-os/anise#36);
-  until both are addressed, pass explicit package IDs (e.g. all step1 IDs
-  at once).
 - Artifacts land in `./build` as `<name>-<category>-<version>.package.tar.zst`.
   The payload is the tree relative to the spec's `package_dir`, so the step1
   toolchain payloads unpack under `$MFS` (default `/mfs`).
