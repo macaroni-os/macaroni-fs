@@ -12,6 +12,9 @@ prelude:
   binutils
   sys-apps/texinfo
   sys-apps/which
+  sys-apps/grep
+  sys-apps/gawk
+  sys-apps/findutils
   sys-apps/portage
   sys-apps/diffutils
   sys-apps/baselayout
@@ -29,6 +32,7 @@ prelude:
   dev-libs/popt
   net-misc/rsync
   app-arch/tar
+  app-arch/gzip
   app-arch/xz-utils
   net-misc/curl
   net-misc/wget &&
@@ -39,7 +43,6 @@ prelude:
   eselect gcc set 1 &&
   ln -s /usr/share/zoneinfo/Europe/Rome /etc/localtime &&
   eval 'locale-gen || true' &&
-  anise miner ri virtual/base &&
   anise cleanup --purge-repos &&
   macaronictl env-update &&
   cd / && rm -rf /anisebuild &&
