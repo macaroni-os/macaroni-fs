@@ -16,6 +16,12 @@ steps:
   cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
   mkdir gcc-build && cd gcc-build
   &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
   AR=ar LDFLAGS="-Wl,-rpath,${MFS}/cross-tools/lib"
   {{- $gcc_arch := .Values.gcc_arch | default "" }}
   {{- $gcc_cpu := .Values.gcc_cpu | default "" }}

@@ -21,6 +21,12 @@ steps:
   export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
   cd ${MFS}/build/gcc-{{ $v }} &&
   mkdir -p libstdcxx-build && cd libstdcxx-build &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
   ../libstdc++-v3/configure
   --host=${MFS_TARGET}
   --build=$(../config.guess)

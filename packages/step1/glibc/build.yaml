@@ -22,6 +22,12 @@ steps:
   patch -Np1 -i ${MFS}/sources/patches/glibc-fhs-1.patch &&
   patch -Np1 -i ${MFS}/sources/patches/glibc-{{ $v }}-upstream_fixes-3.patch &&
   mkdir -p build && cd build &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
   echo "rootsbindir=/usr/sbin" > configparms &&
   ../configure
   --prefix=/usr
