@@ -1,0 +1,73 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+steps:
+# Build the tic helper with the BUILD MACHINE compiler first (LFS-13.1
+# ch.6.3): it has to be executable on the build host during later
+# installs, so force /usr/bin/gcc and install it into ${MFS}/tools/bin.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  mkdir -p host-tic && cd host-tic &&
+  ../configure --prefix=${MFS}/tools AWK=gawk CC=/usr/bin/gcc &&
+  make -C include &&
+  make -C progs tic &&
+  install -d ${MFS}/tools/bin &&
+  install -m 755 progs/tic ${MFS}/tools/bin &&
+  install -d "/step1/{{ .Values.name }}${MFS}/tools/bin" &&
+  install -m 755 progs/tic "/step1/{{ .Values.name }}${MFS}/tools/bin"
+# Cross-compile the libraries (final location under ${MFS}/usr, staged
+# through DESTDIR like the rest of the sysroot). Three environment
+# adaptations beyond the book, all verified by config.log probes:
+# - --with-build-cc/--with-build-cxx: cross builds need a native
+#   compiler for build-time tools and ${MFS}/cross-tools/bin is first
+#   in PATH, so point them explicitly at the container toolchain.
+# - -isystem of the libstdc++ include tree baked into CXX: the pass-1
+#   driver (configured --with-newlib) omits the C++ header directory
+#   from its search list, and CXXCPP must see it too for the
+#   AC_CHECK_HEADER-style probes, hence CXX rather than CXXFLAGS.
+# - -fpermissive: ncurses' own "does g++ work" probe adds a hardcoded
+#   -I/usr/include, which pulls the build container's old floatn.h and
+#   collides with GCC 16's built-in C++ float types.
+- >-
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  GV=$(${MFS_TARGET}-g++ -dumpversion) &&
+  GXXD=${MFS}/cross-tools/${MFS_TARGET}/include/c++/${GV} &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  CXX="${MFS_TARGET}-g++ -isystem $GXXD -isystem $GXXD/${MFS_TARGET} -isystem $GXXD/backward"
+  CXXFLAGS="-g -O2 -fpermissive"
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(./config.guess)
+  --mandir=/usr/share/man
+  --with-manpage-format=normal
+  --with-shared
+  --without-normal
+  --with-cxx-shared
+  --without-debug
+  --without-ada
+  --disable-stripping
+  --with-build-cc=/usr/bin/gcc
+  --with-build-cxx=/usr/bin/g++
+  CC=${MFS_TARGET}-gcc
+  AWK=gawk
+  &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  ln -sv libncursesw.so ${MFS}/usr/lib/libncurses.so &&
+  sed -e 's/^#if.*XOPEN.*$/#if 1/' -i ${MFS}/usr/include/curses.h &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  ln -sv libncursesw.so "/step1/{{ .Values.name }}${MFS}/usr/lib/libncurses.so" &&
+  sed -e 's/^#if.*XOPEN.*$/#if 1/' -i "/step1/{{ .Values.name }}${MFS}/usr/include/curses.h"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: m4
+  version: '>=0'

@@ -1,0 +1,9 @@
+name: ncurses
+version: '6.6'
+category: step1
+description: 'MFS Step1: Ncurses (cross temporary tool)'
+uri:
+- https://invisible-island.net/ncurses/
+license: MIT
+labels:
+  original.package.version: '6.6'
