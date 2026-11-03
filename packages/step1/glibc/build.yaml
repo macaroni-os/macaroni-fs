@@ -1,6 +1,8 @@
 {{- $v := ( index .Values.labels "original.package.version" ) }}
 prelude:
-# Download and unpack the sources (the LFS patches ship in patches/)
+# Download and unpack the sources. The LFS patches ship in patches/ (see
+# steps: they are staged into ${MFS}/sources so the future step1/sources
+# package carries them for step2 and they are not vendored twice).
 - >-
   wget -O ${MFS}/sources/glibc-{{ $v }}.tar.xz
   https://ftp.gnu.org/gnu/glibc/glibc-{{ $v }}.tar.xz &&
@@ -11,13 +13,14 @@ steps:
 - >-
   mkdir -p /step1/{{ .Values.name }}/ &&
   export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cp -a /anisebuild/patches ${MFS}/sources/ &&
   {{- if eq .Values.mfs_bits 64 }}
   ln -sfv ../lib/ld-linux-x86-64.so.2 ${MFS}/lib64 &&
   ln -sfv ../lib/ld-linux-x86-64.so.2 ${MFS}/lib64/ld-lsb-x86-64.so.3 &&
   {{- end }}
   cd ${MFS}/build/glibc-{{ $v }} &&
-  patch -Np1 -i /anisebuild/patches/glibc-fhs-1.patch &&
-  patch -Np1 -i /anisebuild/patches/glibc-{{ $v }}-upstream_fixes-3.patch &&
+  patch -Np1 -i ${MFS}/sources/patches/glibc-fhs-1.patch &&
+  patch -Np1 -i ${MFS}/sources/patches/glibc-{{ $v }}-upstream_fixes-3.patch &&
   mkdir -p build && cd build &&
   echo "rootsbindir=/usr/sbin" > configparms &&
   ../configure
