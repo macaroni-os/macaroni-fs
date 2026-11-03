@@ -3,6 +3,7 @@ prelude:
 - >-
   export HTTP_TIMEOUT=0
   anise repo update &&
+  anise upgrade -y &&
   anise i -y --force --sync-repos
   app-admin/whip
   sys-apps/whip-catalog
