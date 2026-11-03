@@ -1,0 +1,36 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+steps:
+# Cross-compile using the step1 cross toolchain (LFS-13.1 ch.6).
+# --without-bash-malloc makes Bash use the stable glibc malloc.
+# CC_FOR_BUILD is set explicitly: the builtins generator (mkbuiltins)
+# is compiled with plain gcc during the build, and cross-tools/bin
+# comes first in PATH, so the build machine compiler must be pinned
+# or mkbuiltins gets linked against the (unbootable yet) sysroot libc.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  CC_FOR_BUILD=/usr/bin/gcc
+  ./configure
+  --prefix=/usr
+  --build=$(sh support/config.guess)
+  --host=${MFS_TARGET}
+  --without-bash-malloc
+  --docdir=/usr/share/doc/{{ .Values.name }}-{{ $v }}
+  CC=${MFS_TARGET}-gcc
+  &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: ncurses
+  version: '>=0'
