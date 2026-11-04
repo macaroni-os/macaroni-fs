@@ -41,8 +41,7 @@ prelude:
   /usr/bin/gcc-config 1 &&
   source /etc/profile &&
   eselect gcc set 1 &&
-  for d in /usr/lib/gcc/*/*/; do echo ${d%/}; done > /etc/ld.so.conf.d/99-gcc-runtime.conf &&
-  ldconfig &&
+  printf "/usr/lib/gcc/x86_64-pc-linux-gnu/12.3.0\n/usr/lib/gcc/x86_64-pc-linux-gnu/12.3.0/32\n" > /etc/ld.so.conf.d/05gcc-x86_64-pc-linux-gnu.conf &&
   ln -s /usr/share/zoneinfo/Europe/Rome /etc/localtime &&
   eval 'locale-gen || true' &&
   anise cleanup --purge-repos &&
