@@ -1,0 +1,9 @@
+name: gawk
+version: '5.4.1'
+category: step1
+description: 'MFS Step1: Gawk (cross temporary tool)'
+uri:
+- https://www.gnu.org/software/gawk/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '5.4.1'

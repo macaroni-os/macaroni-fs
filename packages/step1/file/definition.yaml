@@ -1,0 +1,9 @@
+name: file
+version: '5.48'
+category: step1
+description: 'MFS Step1: File (cross temporary tool)'
+uri:
+- https://astron.com/pub/file/
+license: BSD-2-Clause
+labels:
+  original.package.version: '5.48'
