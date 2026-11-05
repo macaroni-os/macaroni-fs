@@ -1,0 +1,51 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://astron.com/pub/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+steps:
+# Build a native `file` first (LFS-13.1 ch.6.7): the cross build needs a
+# matching-version file executable to generate its magic signature, and
+# that binary has to run on the build machine. CC=/usr/bin/gcc is pinned
+# because cross-tools/bin comes first in PATH and would otherwise feed
+# the cross compiler into this native build. The --disable-* options
+# keep configure away from host libraries whose headers may be absent.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  mkdir -p host-build &&
+  cd host-build &&
+  ../configure
+  --disable-bzlib
+  --disable-libseccomp
+  --disable-xzlib
+  --disable-zlib
+  CC=/usr/bin/gcc
+  &&
+  make
+# Cross-compile file, using the native build's binary for the signature.
+# libmagic.la is removed from both staged trees: libtool archives are
+# build-tree artifacts and harmful for cross compilation.
+- >-
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(./config.guess)
+  CC=${MFS_TARGET}-gcc
+  &&
+  make FILE_COMPILE=$(pwd)/host-build/src/file &&
+  make DESTDIR=${MFS} install &&
+  rm -v ${MFS}/usr/lib/libmagic.la &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  rm -v "/step1/{{ .Values.name }}${MFS}/usr/lib/libmagic.la"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: diffutils
+  version: '>=0'
