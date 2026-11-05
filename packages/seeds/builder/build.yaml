@@ -12,6 +12,9 @@ prelude:
   binutils
   sys-apps/texinfo
   sys-apps/which
+  sys-apps/grep
+  sys-apps/gawk
+  sys-apps/findutils
   sys-apps/portage
   sys-apps/diffutils
   sys-apps/baselayout
@@ -21,7 +24,6 @@ prelude:
   sys-devel/bison
   sys-devel/gcc-config
   sys-kernel/linux-headers
-  virtual/base
   dev-libs/libpcre2
   dev-libs/openssl
   app-misc/ca-certificates
@@ -29,22 +31,22 @@ prelude:
   dev-libs/popt
   net-misc/rsync
   app-arch/tar
+  app-arch/gzip
   app-arch/xz-utils
   net-misc/curl
   net-misc/wget &&
   macaronictl env-update &&
   source /etc/profile &&
+  eval 'mkdir /tmp || true' &&
+  chmod a+rwx /tmp &&
   /usr/bin/gcc-config 1 &&
   source /etc/profile &&
   eselect gcc set 1 &&
   ln -s /usr/share/zoneinfo/Europe/Rome /etc/localtime &&
   eval 'locale-gen || true' &&
-  anise miner ri virtual/base &&
   anise cleanup --purge-repos &&
   macaronictl env-update &&
   cd / && rm -rf /anisebuild &&
-  eval 'mkdir /tmp || true' &&
-  chmod a+rwx /tmp &&
   mkdir -p /{{ .Values.name }}/
 
 package_dir: /{{ .Values.name }}/
