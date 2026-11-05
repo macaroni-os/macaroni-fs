@@ -1,0 +1,33 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# Cross-compile using the step1 cross toolchain (LFS-13.1 ch.6.6).
+# gl_cv_func_strcasecmp_works is forced: that configure probe runs a
+# compiled program, which cannot run on the build host during cross
+# compilation, and this check has no cross-compilation fallback. Glibc
+# 2.44's strcasecmp is known to work, matching the book's rationale.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  gl_cv_func_strcasecmp_works=yes
+  --build=$(./build-aux/config.guess)
+  CC=${MFS_TARGET}-gcc
+  &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: bash
+  version: '>=0'
