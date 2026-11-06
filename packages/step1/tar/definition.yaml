@@ -1,0 +1,9 @@
+name: tar
+version: '1.35'
+category: step1
+description: 'MFS Step1: Tar (cross temporary tool)'
+uri:
+- https://www.gnu.org/software/tar/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '1.35'
