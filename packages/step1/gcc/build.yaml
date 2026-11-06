@@ -70,9 +70,12 @@ steps:
   --with-gmp=${MFS}/cross-tools
   --with-mpc=${MFS}/cross-tools
   &&
-  make all-gcc all-target-libgcc &&
-  make install-gcc install-target-libgcc &&
-  make DESTDIR="/step1/{{ .Values.name }}" install-gcc install-target-libgcc
+  make ${MAKEOPTS} all-gcc &&
+  make ${MAKEOPTS} all-target-libgcc &&
+  make ${MAKEOPTS} install-gcc &&
+  make ${MAKEOPTS} install-target-libgcc &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}" install-gcc &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}" install-target-libgcc
 
 # The pass-1 build (--with-newlib) installs the generated boot limits.h
 # (MB_LEN_MAX 1, no chain to the C library). With glibc 2.42+ under C23

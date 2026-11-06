@@ -37,11 +37,11 @@ steps:
   --disable-libstdcxx-pch
   --with-gxx-include-dir=/cross-tools/${MFS_TARGET}/include/c++/{{ $v }}
   &&
-  make &&
+  make ${MAKEOPTS} &&
   find . -name Makefile -exec sed -i 's|${libdir}/../lib64|${libdir}|g' {} + &&
-  make DESTDIR=${MFS} install &&
+  make ${MAKEOPTS} DESTDIR=${MFS} install &&
   rm -f ${MFS}/usr/lib/libstdc++*.la ${MFS}/usr/lib/libsupc++.la &&
-  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
   rm -f "/step1/{{ .Values.name }}${MFS}/usr/lib/libstdc++"*.la "/step1/{{ .Values.name }}${MFS}/usr/lib/libsupc++.la"
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
