@@ -1,0 +1,35 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://github.com/tukaani-project/xz/releases/download/v{{ $v }}/xz-{{ $v }}.tar.xz &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# Cross-compile using the step1 cross toolchain (LFS-13.1 ch.6.16).
+# --disable-static keeps the build to shared liblzma, and liblzma.la is
+# removed from both staged trees: libtool archives are build-tree
+# artifacts and harmful for cross compilation.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(build-aux/config.guess)
+  --disable-static
+  --docdir=/usr/share/doc/xz-5.8.4
+  CC=${MFS_TARGET}-gcc
+  &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  rm -v ${MFS}/usr/lib/liblzma.la &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  rm -v "/step1/{{ .Values.name }}${MFS}/usr/lib/liblzma.la"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: tar
+  version: '>=0'

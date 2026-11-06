@@ -1,0 +1,9 @@
+name: xz
+version: '5.8.4'
+category: step1
+description: 'MFS Step1: Xz (cross temporary tool)'
+uri:
+- https://tukaani.org/xz/
+license: 0BSD AND LGPL-2.1-or-later AND GPL-2.0-or-later
+labels:
+  original.package.version: '5.8.4'
