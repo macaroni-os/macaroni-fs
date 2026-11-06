@@ -1,0 +1,9 @@
+name: sed
+version: '4.10'
+category: step1
+description: 'MFS Step1: Sed (cross temporary tool)'
+uri:
+- https://www.gnu.org/software/sed/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '4.10'
