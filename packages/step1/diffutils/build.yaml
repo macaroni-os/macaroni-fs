@@ -29,5 +29,5 @@ steps:
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1
-  name: bash
+  name: coreutils
   version: '>=0'
