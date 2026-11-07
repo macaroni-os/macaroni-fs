@@ -1,0 +1,56 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# The source is already in ${MFS}/sources: step1/binutils downloaded it
+# (same version, kept for parity with pass 1; the rolling book currently
+# says 2.47). Only a fresh unpack is needed for the pass-2 build.
+- >-
+  eval 'rm -rf ${MFS}/build/binutils-{{ $v }} || true' &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/binutils-{{ $v }}.tar.xz
+steps:
+# Rebuild binutils against the temporary glibc (LFS-13.1 ch.6.17) and install
+# into ${MFS}/usr. The ltmain.sh sed works around binutils' internal libtool
+# linking against libraries from the build host.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/${MFS_TARGET}/bin:${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  export AR=${MFS}/cross-tools/${MFS_TARGET}/bin/ar &&
+  export AS=${MFS}/cross-tools/${MFS_TARGET}/bin/as &&
+  export LD=${MFS}/cross-tools/${MFS_TARGET}/bin/ld &&
+  export NM=${MFS}/cross-tools/${MFS_TARGET}/bin/nm &&
+  export RANLIB=${MFS}/cross-tools/${MFS_TARGET}/bin/ranlib &&
+  export STRIP=${MFS}/cross-tools/${MFS_TARGET}/bin/strip &&
+  export OBJCOPY=${MFS}/cross-tools/${MFS_TARGET}/bin/objcopy &&
+  export OBJDUMP=${MFS}/cross-tools/${MFS_TARGET}/bin/objdump &&
+  export READELF=${MFS}/cross-tools/${MFS_TARGET}/bin/readelf &&
+  cd ${MFS}/build/binutils-{{ $v }} &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  sed '6031s/$add_dir//' -i ltmain.sh &&
+  mkdir -p build && cd build &&
+  ../configure
+  --prefix=/usr
+  --build=$(../config.guess)
+  --host=${MFS_TARGET}
+  --disable-nls
+  --enable-shared
+  --enable-gprofng=no
+  --disable-werror
+  --enable-64-bit-bfd
+  --enable-new-dtags
+  --enable-default-hash-style=gnu
+  &&
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=${MFS} install &&
+  rm -vf ${MFS}/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la} &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  rm -vf "/step1/{{ .Values.name }}${MFS}/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes,sframe}.{a,la}"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: xz
+  version: '>=0'

@@ -1,0 +1,84 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# The GCC source is already in ${MFS}/sources (step1/gcc downloaded it); drop
+# any tree left from pass 1 and unpack fresh.
+# GMP/MPFR/MPC are unpacked in-tree on purpose: pointing
+# --with-gmp/--with-mpfr/--with-mpc at ${MFS}/cross-tools builds fine but
+# produces a cc1 linked against libmpc.so.3/libmpfr.so.6, which then fails in
+# the chroot (captured 2026-11-07). The in-tree copies are the build-host
+# static ones the book uses. Their tarballs are already in ${MFS}/sources.
+- >-
+  eval 'rm -rf ${MFS}/build/gcc-{{ $v }} || true' &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/gcc-{{ $v }}.tar.xz &&
+  cd gcc-{{ $v }} &&
+  tar -xf ${MFS}/sources/mpfr-4.2.2.tar.xz && mv -v mpfr-4.2.2 mpfr &&
+  tar -xf ${MFS}/sources/gmp-6.3.0.tar.xz && mv -v gmp-6.3.0 gmp &&
+  tar -xf ${MFS}/sources/mpc-1.4.1.tar.xz && mv -v mpc-1.4.1 mpc
+steps:
+# Build GCC a second time, now against the temporary glibc, and install it
+# into ${MFS}/usr (LFS-13.1 ch.6.18). The x86_64 sed renames the 64-bit
+# library dir from lib64 to lib, matching the no-multilib house layout.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/${MFS_TARGET}/bin:${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  export AR=${MFS}/cross-tools/${MFS_TARGET}/bin/ar &&
+  export AS=${MFS}/cross-tools/${MFS_TARGET}/bin/as &&
+  export LD=${MFS}/cross-tools/${MFS_TARGET}/bin/ld &&
+  export NM=${MFS}/cross-tools/${MFS_TARGET}/bin/nm &&
+  export RANLIB=${MFS}/cross-tools/${MFS_TARGET}/bin/ranlib &&
+  export STRIP=${MFS}/cross-tools/${MFS_TARGET}/bin/strip &&
+  export OBJCOPY=${MFS}/cross-tools/${MFS_TARGET}/bin/objcopy &&
+  export OBJDUMP=${MFS}/cross-tools/${MFS_TARGET}/bin/objdump &&
+  export READELF=${MFS}/cross-tools/${MFS_TARGET}/bin/readelf &&
+  cd ${MFS}/build/gcc-{{ $v }} &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  {{- if eq .Values.mfs_bits 64 }}
+  sed -e '/m64=/s/lib64/lib/' -i.orig gcc/config/i386/t-linux64 &&
+  {{- end }}
+  mkdir -p build && cd build &&
+  ../configure
+  --build=$(../config.guess)
+  --host=${MFS_TARGET}
+  --target=${MFS_TARGET}
+  --prefix=/usr
+  --libdir=/usr/lib
+  --with-build-sysroot=${MFS}
+  --enable-default-pie
+  --enable-default-ssp
+  --disable-fixincludes
+  --disable-nls
+  --disable-multilib
+  --disable-libatomic
+  --disable-libgomp
+  --disable-libquadmath
+  --disable-libsanitizer
+  --disable-libssp
+  --disable-libvtv
+  --without-zstd
+  --enable-languages=c,c++
+  CC=/usr/bin/gcc
+  CXX=/usr/bin/g++
+  CC_FOR_BUILD=/usr/bin/gcc
+  CXX_FOR_BUILD=/usr/bin/g++
+  CXX_FOR_TARGET="${MFS_TARGET}-gcc -nostdinc++"
+  LDFLAGS_FOR_TARGET=-L${PWD}/${MFS_TARGET}/libgcc
+  target_configargs=gcc_cv_target_thread_file=posix
+  &&
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=${MFS} install &&
+  ln -sv gcc ${MFS}/usr/bin/cc &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  ln -sv gcc "/step1/{{ .Values.name }}${MFS}/usr/bin/cc" &&
+  if [ -d ${MFS}/usr/lib64 ]; then mkdir -p ${MFS}/usr/lib && cp -a ${MFS}/usr/lib64/. ${MFS}/usr/lib/ && rm -rf ${MFS}/usr/lib64; fi &&
+  if [ -d "/step1/{{ .Values.name }}${MFS}/usr/lib64" ]; then mkdir -p "/step1/{{ .Values.name }}${MFS}/usr/lib" && cp -a "/step1/{{ .Values.name }}${MFS}/usr/lib64/." "/step1/{{ .Values.name }}${MFS}/usr/lib/" && rm -rf "/step1/{{ .Values.name }}${MFS}/usr/lib64"; fi
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: binutils-pass2
+  version: '>=0'
