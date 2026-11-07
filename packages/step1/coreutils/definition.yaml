@@ -1,0 +1,9 @@
+name: coreutils
+version: '9.12'
+category: step1
+description: 'MFS Step1: Coreutils (cross temporary tools)'
+uri:
+- https://www.gnu.org/software/coreutils/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '9.12'

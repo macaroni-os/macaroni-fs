@@ -1,0 +1,46 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://ftp.gnu.org/gnu/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz &&
+  cd ${MFS}/build/ &&
+  tar -xJf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# Cross-compile the basic utilities (LFS-13.1 ch.6.5). --enable-install-program
+# =hostname is the book's flag (the Perl test suite needs it). chroot is moved
+# to /usr/sbin and its man page section fixed, per the book; /usr/sbin is
+# created here because the ch.6 tree does not have it yet.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/${MFS_TARGET}/bin:${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(build-aux/config.guess)
+  --enable-install-program=hostname
+  CC=${MFS_TARGET}-gcc
+  &&
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=${MFS} install &&
+  mkdir -pv ${MFS}/usr/sbin ${MFS}/usr/share/man/man8 &&
+  mv -v ${MFS}/usr/bin/chroot ${MFS}/usr/sbin &&
+  mv -v ${MFS}/usr/share/man/man1/chroot.1 ${MFS}/usr/share/man/man8/chroot.8 &&
+  sed -i 's/"1"/"8"/' ${MFS}/usr/share/man/man8/chroot.8 &&
+  make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
+  mkdir -pv "/step1/{{ .Values.name }}${MFS}/usr/sbin" "/step1/{{ .Values.name }}${MFS}/usr/share/man/man8" &&
+  mv -v "/step1/{{ .Values.name }}${MFS}/usr/bin/chroot" "/step1/{{ .Values.name }}${MFS}/usr/sbin" &&
+  mv -v "/step1/{{ .Values.name }}${MFS}/usr/share/man/man1/chroot.1" "/step1/{{ .Values.name }}${MFS}/usr/share/man/man8/chroot.8" &&
+  sed -i 's/"1"/"8"/' "/step1/{{ .Values.name }}${MFS}/usr/share/man/man8/chroot.8"
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: bash
+  version: '>=0'
