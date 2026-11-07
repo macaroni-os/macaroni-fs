@@ -1,0 +1,9 @@
+name: gcc-pass2
+version: '16.2.0'
+category: step1
+description: 'MFS Step1: GCC pass 2 (temporary tools)'
+uri:
+- https://gcc.gnu.org/
+license: LGPLv3+
+labels:
+  original.package.version: '16.2.0'
