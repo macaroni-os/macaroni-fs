@@ -1,4 +1,8 @@
-package_dir: /mfs/sources
+steps:
+- >-
+  mkdir /sources/ &&
+  mv ${MFS}/sources/ /sources/
+package_dir: /sources
 requires:
 - category: step1
   name: xz
