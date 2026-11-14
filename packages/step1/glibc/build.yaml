@@ -48,13 +48,15 @@ steps:
   grep "found ld-linux" dummy.log &&
   rm -f a.out dummy.log &&
   make ${MAKEOPTS} DESTDIR="/step1/{{ .Values.name }}${MFS}" install &&
-  sed '/RTLDLIST=/s@/usr@@g' -i "/step1/{{ .Values.name }}${MFS}/usr/bin/ldd" &&
+  sed '/RTLDLIST=/s@/usr@@g' -i "/step1/{{ .Values.name }}${MFS}/usr/bin/ldd"
   {{- if eq .Values.mfs_bits 64 }}
-  mkdir -p "/step1/{{ .Values.name }}${MFS}/lib64" &&
-  ln -sf ../lib/ld-linux-x86-64.so.2 "/step1/{{ .Values.name }}${MFS}/lib64" &&
-  ln -sf ../lib/ld-linux-x86-64.so.2 "/step1/{{ .Values.name }}${MFS}/lib64/ld-lsb-x86-64.so.3" &&
+  &&
+  mkdir -p /step1/{{ .Values.name }}${MFS}/lib64 &&
+  cd /step1/{{ .Values.name }}${MFS}/lib64 &&
+  ln -s ../usr/lib/ld-linux-x86-64.so.2 . &&
+  ln -s ../usr/lib/ld-linux-x86-64.so.2 ld-lsb-x86-64.so.3 &&
+  cd -
   {{- end }}
-  true
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1

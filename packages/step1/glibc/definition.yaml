@@ -1,9 +1,9 @@
 name: glibc
-version: '2.44'
+version: 2.44+1
 category: step1
 description: 'MFS Step1: Glibc'
 uri:
 - https://www.gnu.org/software/libc/
 license: LGPL-2.1-or-later
 labels:
-  original.package.version: '2.44'
+  original.package.version: "2.44"
