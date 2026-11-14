@@ -1,4 +1,4 @@
-package_dir: /step1/mfs/sources
+package_dir: /mfs/sources
 requires:
 - category: step1
   name: xz
