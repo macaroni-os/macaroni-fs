@@ -4,8 +4,6 @@ env:
 - MFS_HOST={{ .Values.mfs_host }}
 - MFS_TARGET={{ .Values.mfs_target }}
 - MFS_ARCH={{ .Values.mfs_arch }}
-# Follow Creating Essential Files documentation from LFS
-- "BOOTSTRAP_ENTITIES=root bin daemon messagebus nobody sys kmem tty disk floppy disk lp dialout audio video utmp input mail kvm wheel users nogroup"
 # We keep this path to avoid files injection.
 # This package is a virtual seed package to setup
 # chroot image.
@@ -28,6 +26,7 @@ steps:
   touch ${MFS}/etc/shadow &&
   touch ${MFS}/etc/group &&
   touch ${MFS}/etc/gshadow &&
+  export BOOTSTRAP_ENTITIES="root bin daemon messagebus nobody sys kmem tty disk floppy disk lp dialout audio video utmp input mail kvm wheel users nogroup" &&
   for e in ${BOOTSTRAP_ENTITIES} ; do
   entities merge -s /usr/share/macaroni/entities/
   -e ${e}
