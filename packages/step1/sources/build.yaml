@@ -1,0 +1,5 @@
+package_dir: /step1/mfs/sources
+requires:
+- category: step1
+  name: xz
+  version: '>=0'
