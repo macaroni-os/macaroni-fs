@@ -1,9 +1,9 @@
 name: findutils
-version: '4.11.0'
+version: 4.11.0+1
 category: step1
 description: 'MFS Step1: Findutils (cross temporary tool)'
 uri:
 - https://www.gnu.org/software/findutils/
 license: GPL-3.0-or-later
 labels:
-  original.package.version: '4.11.0'
+  original.package.version: 4.11.0
