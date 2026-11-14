@@ -26,6 +26,8 @@ steps:
   make &&
   make DESTDIR=${MFS} install &&
   make DESTDIR="/step1/{{ .Values.name }}${MFS}" install
+# Avoid conflicts with /usr/share/info/dir
+- rm /step1/{{ .Values.name }}${MFS}/usr/share/info/dir
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1
