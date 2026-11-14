@@ -56,9 +56,10 @@ steps:
 {{- end }}
 
 # We use special anise config where rootfs is set to
-# /mfs
+# /mfs (using --force to ignore conflicts)
 - >-
   anise i -y --sync-repos --purge-repos
+  --force
   --config anise.yaml
   step1/sources
   step1/base
