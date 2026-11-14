@@ -1,0 +1,93 @@
+env:
+- LC_ALL=POSIX
+- MFS=/mfs
+- MFS_HOST={{ .Values.mfs_host }}
+- MFS_TARGET={{ .Values.mfs_target }}
+- MFS_ARCH={{ .Values.mfs_arch }}
+# Follow Creating Essential Files documentation from LFS
+- "BOOTSTRAP_ENTITIES=root bin daemon messagebus nobody sys kmem tty disk floppy disk lp dialout audio video utmp input mail kvm wheel users nogroup"
+# We keep this path to avoid files injection.
+# This package is a virtual seed package to setup
+# chroot image.
+package_dir: /layer
+steps:
+# Prepare the MFS directories
+# TODO: Check if we need /etc/ld.so.conf.d
+- >-
+  install -d /layer &&
+  install -d ${MFS}/{dev,proc,run,sys,etc,var} &&
+  install -m 1777 -d ${MFS}/tmp ${MFS}/var/tmp &&
+  install -d ${MFS}/tools/lib  &&
+  install -d ${MFS}/build
+
+# Prepare shadow files
+- >-
+  anise repo update &&
+  anise i macaroni/entities-catalog entities &&
+  touch ${MFS}/etc/passwd &&
+  touch ${MFS}/etc/shadow &&
+  touch ${MFS}/etc/group &&
+  touch ${MFS}/etc/gshadow &&
+  for e in ${BOOTSTRAP_ENTITIES} ; do
+  entities merge -s /usr/share/macaroni/entities/
+  -e ${e}
+  --users-file ${MFS}/etc/passwd
+  --shadow-file ${MFS}/etc/shadow
+  --groups-file ${MFS}/etc/group
+  --gshadow-file ${MFS}/etc/gshadow ;
+  done
+
+{{- if .Values.local_build }}
+  # Use a local repository of Macaroni From Scratch packages
+- >-
+  anise repo update &&
+  wget -O /etc/anise/repos.conf.d/mfs-local.yml
+  https://raw.githubusercontent.com/macaroni-os/anise/refs/heads/geaaru/contrib/config/repos.conf.d/example.yml &&
+  yq4 e '.name = "{{ .Values.local_reponame }}"' /etc/anise/repos.conf.d/mfs-local.yml &&
+  yq4 e '.description = "Macaroni From Scracth Local Repository"'
+  /etc/anise/repos.conf.d/mfs-local.yml &&
+  yq4 e '.urls[0] = "{{ .Values.local_repourl }}"'
+  /etc/anise/repos.conf.d/mfs-local.yml
+{{- else }}
+  # Community build using official macaroni os repository
+- >-
+  anise repo update &&
+  anise i --sync-repos --purge-repos repository/mfs-dev
+{{- end }}
+
+# We use special anise config where rootfs is set to
+# /mfs
+- >-
+  anise i --sync-repos --purge-repos
+  --config anise.yaml
+  step1/sources
+  step1/base
+  step1/linux-headers
+  step1/gmp
+  step1/mpfr
+  step1/mpr
+  step1/glibc
+  step1/libstdcxx
+  step1/m4
+  step1/ncurses
+  step1/bash
+  step1/coreutils
+  step1/diffutils
+  step1/file
+  step1/findutils
+  step1/gawk
+  step1/grep
+  step1/gzip
+  step1/gzip
+  step1/make
+  step1/patch
+  step1/sed
+  step1/tar
+  step1/xz
+  step1/gcc-pass2
+  step1/binutils-pass2
+
+requires:
+- category: seed
+  name: builder
+  version: '>=0'

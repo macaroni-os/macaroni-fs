@@ -1,0 +1,23 @@
+general:
+  debug: false
+  color: false
+  enable_emoji: true
+  client_timeout: 0
+system:
+  database_engine: "boltdb"
+  rootfs: /mfs
+  tmpdir_base: "/var/tmp/anise"
+repos_confdir:
+  - /etc/anise/repos.conf.d
+subsets_defdir:
+  - /etc/anise/subsets.def.d
+subsets_confdir:
+  - /etc/anise/subsets.conf.d
+subsets:
+  enabled:
+    - portage
+    - devel
+
+tar_flows:
+  max_openfiles: 150
+  copy_buffer_size: 64
