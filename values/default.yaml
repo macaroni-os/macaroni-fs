@@ -1,0 +1,6 @@
+# Set this option to true if you
+# want build macaroni-fs locally.
+local_build: false
+# name of the local repository
+local_reponame: "mfs-local"
+local_repourl: "https://myhost.local/mfs-local"

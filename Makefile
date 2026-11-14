@@ -19,6 +19,7 @@ REPO_NAME?=mfs
 REPO_DESC?=Macaroni OS MFS
 REPO_URL??=https://dl.macaronios.org/repos/mfs/
 REPO_VALUES?=./values/gnu-amd64.yaml
+REPO_DEFAULT_VALUES?=./values/default.yaml
 export REPO_VALUES
 CONFIG?=--config conf/anise.yaml
 
@@ -28,6 +29,10 @@ endif
 
 ifneq ($(strip $(REPO_VALUES)),)
   BUILD_ARGS+=--values $(REPO_VALUES)
+endif
+
+ifneq ($(strip $(REPO_DEFAULT_VALUES)),)
+  BUILD_ARGS+=--default-values $(REPO_DEFAULT_VALUES)
 endif
 
 ifneq ($(strip $(CONFIG)),)
