@@ -91,10 +91,17 @@ steps:
 # Setup /bin/sh because is the default used by RUN command of docker
 # and temporary fix /bin until this will be fixed in the step1 phase
 - >-
+  echo "Setup bash link on ${MFS}..." &&
   eval 'mkdir -p ${MFS}/bin || true' &&
   cd ${MFS}/bin &&
   ln -s ../usr/bin/bash sh &&
+  cd - &&
+  cd ${MFS}/lib64/ &&
+  rm ld-linux-x86-64.so.2 ld-lsb-x86-64.so.3 &&
+  ln -s ../usr/lib/ld-linux-x86-64.so.2 . &&
+  ln -s ../usr/lib/ld-linux-x86-64.so.2 ld-lsb-x86-64.so.3 &&
   cd -
+
 
 requires:
 - category: seed
