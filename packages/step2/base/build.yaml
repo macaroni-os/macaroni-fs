@@ -89,9 +89,11 @@ steps:
   step1/binutils-pass2
 
 # Setup /bin/sh because is the default used by RUN command of docker
+# and temporary fix /bin until this will be fixed in the step1 phase
 - >-
-  cd /mfs/usr/bin &&
-  ln -s bash sh &&
+  eval 'mkdir -p ${MFS}/bin || true' &&
+  cd ${MFS}/bin &&
+  ln -s ../usr/bin/bash sh &&
   cd -
 
 requires:
