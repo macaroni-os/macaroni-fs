@@ -1,9 +1,9 @@
 name: m4
-version: '1.4.21'
+version: 1.4.21+1
 category: step1
 description: 'MFS Step1: M4 (cross temporary tool)'
 uri:
 - https://www.gnu.org/software/m4/
 license: GPL-3.0-or-later
 labels:
-  original.package.version: '1.4.21'
+  original.package.version: 1.4.21
