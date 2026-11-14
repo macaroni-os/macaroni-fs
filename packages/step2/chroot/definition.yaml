@@ -1,0 +1,7 @@
+name: chroot
+version: 1.0.0
+category: step2
+description: 'MFS Step2: chroot'
+license: GPL-3.0
+labels:
+  original.package.version: 1.0.0

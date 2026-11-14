@@ -1,0 +1,17 @@
+image: scratch
+env:
+- LC_ALL=POSIX
+- MFS=/mfs
+- MFS_HOST={{ .Values.mfs_host }}
+- MFS_TARGET={{ .Values.mfs_target }}
+- MFS_ARCH={{ .Values.mfs_arch }}
+copy:
+  - package:
+      category: step2
+      name: base
+      version: '>=0'
+    source: "/mfs"
+    destination: "/"
+package_dir: /layer
+steps:
+- mkdir /layer
