@@ -82,6 +82,8 @@ steps:
   ln -sv gcc "/step1/{{ .Values.name }}${MFS}/usr/bin/cc" &&
   if [ -d ${MFS}/usr/lib64 ]; then mkdir -p ${MFS}/usr/lib && cp -a ${MFS}/usr/lib64/. ${MFS}/usr/lib/ && rm -rf ${MFS}/usr/lib64; fi &&
   if [ -d "/step1/{{ .Values.name }}${MFS}/usr/lib64" ]; then mkdir -p "/step1/{{ .Values.name }}${MFS}/usr/lib" && cp -a "/step1/{{ .Values.name }}${MFS}/usr/lib64/." "/step1/{{ .Values.name }}${MFS}/usr/lib/" && rm -rf "/step1/{{ .Values.name }}${MFS}/usr/lib64"; fi
+# Avoid conflicts with /usr/share/info/dir
+- rm /step1/{{ .Values.name }}${MFS}/usr/share/info/dir
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1
