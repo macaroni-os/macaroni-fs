@@ -21,7 +21,7 @@ steps:
 # Prepare shadow files
 - >-
   anise repo update &&
-  anise i macaroni/entities-catalog entities &&
+  anise i -y macaroni/entities-catalog entities &&
   touch ${MFS}/etc/passwd &&
   touch ${MFS}/etc/shadow &&
   touch ${MFS}/etc/group &&
@@ -40,6 +40,7 @@ steps:
   # Use a local repository of Macaroni From Scratch packages
 - >-
   anise repo update &&
+  anise i -y app-misc/yq4-bin &&
   wget -O /etc/anise/repos.conf.d/mfs-local.yml
   https://raw.githubusercontent.com/macaroni-os/anise/refs/heads/geaaru/contrib/config/repos.conf.d/example.yml &&
   yq4 e '.name = "{{ .Values.local_reponame }}"' /etc/anise/repos.conf.d/mfs-local.yml &&
@@ -51,13 +52,13 @@ steps:
   # Community build using official macaroni os repository
 - >-
   anise repo update &&
-  anise i --sync-repos --purge-repos repository/mfs-dev
+  anise i -y --sync-repos --purge-repos repository/mfs-dev
 {{- end }}
 
 # We use special anise config where rootfs is set to
 # /mfs
 - >-
-  anise i --sync-repos --purge-repos
+  anise i -y --sync-repos --purge-repos
   --config anise.yaml
   step1/sources
   step1/base
