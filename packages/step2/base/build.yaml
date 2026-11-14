@@ -88,6 +88,12 @@ steps:
   step1/gcc-pass2
   step1/binutils-pass2
 
+# Setup /bin/sh because is the default used by RUN command of docker
+- >-
+  cd /mfs/usr/bin &&
+  ln -s bash sh &&
+  cd -
+
 requires:
 - category: seed
   name: builder
