@@ -1,9 +1,9 @@
 name: bash
-version: '5.3'
+version: 5.3+1
 category: step1
 description: 'MFS Step1: Bash (cross temporary tool)'
 uri:
 - https://www.gnu.org/software/bash/
 license: GPL-3.0-or-later
 labels:
-  original.package.version: '5.3'
+  original.package.version: "5.3"

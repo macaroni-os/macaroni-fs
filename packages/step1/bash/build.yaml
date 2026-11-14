@@ -29,6 +29,19 @@ steps:
   make &&
   make DESTDIR=${MFS} install &&
   make DESTDIR="/step1/{{ .Values.name }}${MFS}" install
+# We prefer install bash under /bin and not /usr/bin
+- >-
+  eval 'mkdir ${MFS}/bin || true' &&
+  eval 'mkdir /step1/{{ .Values.name }}${MFS}/bin || true' &&
+  cd ${MFS}/bin &&
+  mv ../usr/bin/bash . &&
+  cd /step1/{{ .Values.name }}${MFS}/bin &&
+  mv ../usr/bin/bash . &&
+  ln -s bash sh &&
+  cd -
+
+# Avoid conflicts with /usr/share/info/dir
+- rm /step1/{{ .Values.name }}${MFS}/usr/share/info/dir
 package_dir: /step1/{{ .Values.name }}/mfs
 requires:
 - category: step1
