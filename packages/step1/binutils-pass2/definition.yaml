@@ -1,9 +1,9 @@
 name: binutils-pass2
-version: '2.46.0'
+version: 2.46.0+1
 category: step1
 description: 'MFS Step1: binutils pass 2 (temporary tools)'
 uri:
 - https://sourceware.org/binutils/
 license: GPL-3.0-or-later
 labels:
-  original.package.version: '2.46.0'
+  original.package.version: 2.46.0
