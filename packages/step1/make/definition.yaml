@@ -1,9 +1,9 @@
 name: make
-version: '4.4.1'
+version: 4.4.1+1
 category: step1
 description: 'MFS Step1: Make (cross temporary tool)'
 uri:
 - https://www.gnu.org/software/make/
 license: GPL-3.0-or-later
 labels:
-  original.package.version: '4.4.1'
+  original.package.version: 4.4.1
