@@ -1,0 +1,9 @@
+name: ca-certificates
+version: '20261105'
+category: step1
+description: 'MFS Step1: CA certificates (Mozilla bundle)'
+uri:
+- https://curl.se/docs/caextract.html
+license: MPL-2.0
+labels:
+  original.package.version: '20261105'

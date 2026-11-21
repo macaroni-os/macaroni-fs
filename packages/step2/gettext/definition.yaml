@@ -1,0 +1,9 @@
+name: gettext
+version: '1.0'
+category: step2
+description: 'MFS Step2: Gettext (temporary tools)'
+uri:
+- https://www.gnu.org/software/gettext/
+license: GPL-2.0-or-later AND LGPL-2.1-or-later
+labels:
+  original.package.version: '1.0'

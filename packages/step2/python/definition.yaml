@@ -1,0 +1,9 @@
+name: python
+version: '3.11.18'
+category: step2
+description: 'MFS Step2: Python (temporary tools)'
+uri:
+- https://www.python.org/
+license: PSF-2.0
+labels:
+  original.package.version: '3.11.18'

@@ -1,0 +1,24 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Dated Mozilla bundle from curl.se; the date is the bundle date, so the
+# version pins a real snapshot instead of the moving cacert.pem.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/mfs/etc/ssl/certs &&
+  wget -O /step1/{{ .Values.name }}/mfs/etc/ssl/certs/ca-certificates.crt
+  https://curl.se/ca/cacert-2026-11-05.pem
+steps:
+# `openssl rehash` only accepts one certificate per file, so split the
+# Mozilla bundle into cert-NNN.pem files first, then build the hashed
+# <hash>.0 symlinks OpenSSL expects and mirror the same tree live. openssl
+# is a dependency because the bundle is consumed by the TLS library.
+- >-
+  cd /step1/{{ .Values.name }}/mfs/etc/ssl/certs &&
+  awk 'BEGIN{n=0} /-----BEGIN CERTIFICATE-----/{n++; f=sprintf("cert-%03d.pem", n)} n>0{print > f}' ca-certificates.crt &&
+  /usr/bin/openssl rehash . &&
+  mkdir -p ${MFS}/etc/ssl/certs &&
+  cp -a . ${MFS}/etc/ssl/certs/
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: openssl
+  version: '>=0'

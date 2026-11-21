@@ -43,10 +43,10 @@ steps:
   anise i -y app-misc/yq4-bin &&
   wget -O /etc/anise/repos.conf.d/mfs-local.yml
   https://raw.githubusercontent.com/macaroni-os/anise/refs/heads/geaaru/contrib/config/repos.conf.d/example.yml &&
-  yq4 e '.name = "{{ .Values.local_reponame }}"' /etc/anise/repos.conf.d/mfs-local.yml &&
-  yq4 e '.description = "Macaroni From Scracth Local Repository"'
+  yq4 -i e '.name = "{{ .Values.local_reponame }}"' /etc/anise/repos.conf.d/mfs-local.yml &&
+  yq4 -i e '.description = "Macaroni From Scracth Local Repository"'
   /etc/anise/repos.conf.d/mfs-local.yml &&
-  yq4 e '.urls[0] = "{{ .Values.local_repourl }}"'
+  yq4 -i e '.urls[0] = "{{ .Values.local_repourl }}"'
   /etc/anise/repos.conf.d/mfs-local.yml
 {{- else }}
   # Community build using official macaroni os repository
@@ -66,7 +66,7 @@ steps:
   step1/linux-headers
   step1/gmp
   step1/mpfr
-  step1/mpr
+  step1/mpc
   step1/glibc
   step1/libstdcxx
   step1/m4
@@ -79,7 +79,6 @@ steps:
   step1/gawk
   step1/grep
   step1/gzip
-  step1/gzip
   step1/make
   step1/patch
   step1/sed
@@ -87,6 +86,9 @@ steps:
   step1/xz
   step1/gcc-pass2
   step1/binutils-pass2
+  step1/ca-certificates
+  step1/openssl
+  step1/wget
 
 requires:
 - category: seed

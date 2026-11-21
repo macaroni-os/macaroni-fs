@@ -1,0 +1,9 @@
+name: texinfo
+version: '7.3'
+category: step2
+description: 'MFS Step2: Texinfo (temporary tools)'
+uri:
+- https://www.gnu.org/software/texinfo/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '7.3'
