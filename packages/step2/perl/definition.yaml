@@ -1,0 +1,9 @@
+name: perl
+version: 5.44.0+1
+category: step2
+description: 'MFS Step2: Perl (temporary tools)'
+uri:
+- https://www.perl.org/
+license: Artistic-1.0-Perl OR GPL-1.0-or-later
+labels:
+  original.package.version: '5.44.0'

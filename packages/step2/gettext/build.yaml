@@ -1,0 +1,32 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+# The payload is the /step2 tree: the build installs live (the step2/chroot
+# image has the chroot as /) and stages a second copy for packaging, same
+# double-install pattern used by the step1 specs.
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Sources come from step2/sources; the chroot image has no wget/curl.
+- >-
+  cd /sources &&
+  tar -xJf {{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# LFS-13.1 ch.7.7: the temporary tool set only needs msgfmt, msgmerge and
+# xgettext, so skip the shared libraries with --disable-shared.
+- >-
+  mkdir -p /step2/{{ .Values.name }}/usr/bin &&
+  cd /sources/{{ .Values.name }}-{{ $v }} &&
+  ./configure --disable-shared &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  cp -v gettext-tools/src/{msgfmt,msgmerge,xgettext} /usr/bin &&
+  cp -v gettext-tools/src/{msgfmt,msgmerge,xgettext} /step2/{{ .Values.name }}/usr/bin
+requires:
+- category: step2
+  name: chroot
+  version: '>=0'

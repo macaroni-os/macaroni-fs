@@ -1,0 +1,30 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Sources come from step2/sources; the chroot image has no wget/curl.
+- >-
+  cd /sources &&
+  tar -xJf {{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# LFS-13.1 ch.7.8.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /step2/{{ .Values.name }} &&
+  cd /sources/{{ .Values.name }}-{{ $v }} &&
+  ./configure --prefix=/usr --docdir=/usr/share/doc/bison-{{ $v }} &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  rm -f /step2/{{ .Values.name }}/usr/share/info/dir &&
+  cp -a /step2/{{ .Values.name }}/. /
+requires:
+- category: step2
+  name: chroot
+  version: '>=0'
