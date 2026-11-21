@@ -1,0 +1,27 @@
+env:
+- LC_ALL=POSIX
+# The step2 tarballs are downloaded here (the seed image has wget, the
+# step2/chroot image does not) and shipped to the chroot through the
+# step2/chroot package, mirroring how step1/sources feeds /sources.
+# Versions: LFS-13.1 ch.7 for gettext/bison/perl/texinfo/util-linux,
+# Python kept on the 3.11 line instead of the book's 3.15.2.
+package_dir: /sources
+steps:
+- >-
+  install -d /sources &&
+  wget -O /sources/gettext-1.0.tar.xz
+  https://ftpmirror.gnu.org/gettext/gettext-1.0.tar.xz &&
+  wget -O /sources/bison-3.8.2.tar.xz
+  https://ftpmirror.gnu.org/bison/bison-3.8.2.tar.xz &&
+  wget -O /sources/perl-5.44.0.tar.xz
+  https://www.cpan.org/src/5.0/perl-5.44.0.tar.xz &&
+  wget -O /sources/Python-3.11.18.tar.xz
+  https://www.python.org/ftp/python/3.11.18/Python-3.11.18.tar.xz &&
+  wget -O /sources/texinfo-7.3.tar.xz
+  https://ftpmirror.gnu.org/texinfo/texinfo-7.3.tar.xz &&
+  wget -O /sources/util-linux-2.42.4.tar.xz
+  https://www.kernel.org/pub/linux/utils/util-linux/v2.42/util-linux-2.42.4.tar.xz
+requires:
+- category: seed
+  name: builder
+  version: '>=0'

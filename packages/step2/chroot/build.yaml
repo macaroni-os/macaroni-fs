@@ -5,6 +5,9 @@ env:
 - MFS_HOST={{ .Values.mfs_host }}
 - MFS_TARGET={{ .Values.mfs_target }}
 - MFS_ARCH={{ .Values.mfs_arch }}
+# The step1 cc1 was configured with GMP/MPFR/MPC from /cross-tools and needs
+# them at runtime; the chroot env must carry this for every consumer.
+- LD_LIBRARY_PATH=/cross-tools/lib
 copy:
   - package:
       category: step2
@@ -12,6 +15,14 @@ copy:
       version: '>=0'
     source: "/mfs"
     destination: "/"
+  # Step2 tarballs, merged into the /sources tree already shipped by
+  # step2/base (the chroot itself has no wget/curl).
+  - package:
+      category: step2
+      name: sources
+      version: '>=0'
+    source: "/sources"
+    destination: "/sources"
 package_dir: /layer
 steps:
 - mkdir /layer

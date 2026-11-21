@@ -1,0 +1,61 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Sources come from step2/sources; the chroot image has no wget/curl.
+- >-
+  cd /sources &&
+  tar -xJf {{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# LFS-13.1 ch.7.9. Library paths use the 5.44 major.minor version so that
+# patch-level upgrades do not force every module to be reinstalled.
+#
+# Perl does NOT support DESTDIR: `make DESTDIR=... install` writes the man
+# pages to the destination ROOT (perl.0, AnyDBM_File.0, ...) and records
+# DESTDIR-prefixed paths in .packlist. Install it live like the book and
+# then copy the files the install created into the package tree: both trees
+# stay byte-identical and the metadata keeps the /usr paths.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /step2/{{ .Values.name }} &&
+  cd /sources/{{ .Values.name }}-{{ $v }} &&
+  sh Configure -des
+  -D prefix=/usr
+  -D vendorprefix=/usr
+  -D useshrplib
+  -D privlib=/usr/lib/perl5/5.44/core_perl
+  -D archlib=/usr/lib/perl5/5.44/core_perl
+  -D sitelib=/usr/lib/perl5/5.44/site_perl
+  -D sitearch=/usr/lib/perl5/5.44/site_perl
+  -D vendorlib=/usr/lib/perl5/5.44/vendor_perl
+  -D vendorarch=/usr/lib/perl5/5.44/vendor_perl &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  find / -xdev
+  \( -path /proc -o -path /sys -o -path /dev -o -path /tmp
+  -o -path /anisebuild -o -path /sources -o -path /step2 \)
+  -prune -o \( -type f -o -type l \) -printf '%p|%i|%s|%T@\n' |
+  sort > /anisebuild/perl-before.list &&
+  make ${MAKEOPTS} install &&
+  find / -xdev
+  \( -path /proc -o -path /sys -o -path /dev -o -path /tmp
+  -o -path /anisebuild -o -path /sources -o -path /step2 \)
+  -prune -o \( -type f -o -type l \) -printf '%p|%i|%s|%T@\n' |
+  sort > /anisebuild/perl-after.list &&
+  comm -13 /anisebuild/perl-before.list /anisebuild/perl-after.list |
+  cut -d'|' -f1 |
+  while IFS= read -r f; do
+  case "$f" in /proc/*|/sys/*|/dev/*|/tmp/*|/anisebuild/*|/sources/*|/step2/*) continue ;; esac ;
+  if [ -e "$f" ] || [ -L "$f" ]; then cp -a --parents "$f" /step2/{{ .Values.name }}; fi ;
+  done &&
+  rm -f /anisebuild/perl-before.list /anisebuild/perl-after.list
+requires:
+- category: step2
+  name: chroot
+  version: '>=0'

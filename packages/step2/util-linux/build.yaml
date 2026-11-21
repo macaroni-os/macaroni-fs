@@ -1,0 +1,44 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Sources come from step2/sources; the chroot image has no wget/curl.
+- >-
+  cd /sources &&
+  tar -xJf {{ .Values.name }}-{{ $v }}.tar.xz
+steps:
+# LFS-13.1 ch.7.14. ADJTIME_PATH keeps the adjtime file in the FHS location;
+# --without-python avoids probing the just-built Python bindings.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /step2/{{ .Values.name }}/var/lib/hwclock /var/lib/hwclock &&
+  cd /sources/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --libdir=/usr/lib
+  --runstatedir=/run
+  --disable-chfn-chsh
+  --disable-login
+  --disable-nologin
+  --disable-su
+  --disable-setpriv
+  --disable-runuser
+  --disable-pylibmount
+  --disable-static
+  --disable-liblastlog2
+  --without-python
+  ADJTIME_PATH=/var/lib/hwclock/adjtime
+  --docdir=/usr/share/doc/util-linux-{{ $v }} &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  cp -a /step2/{{ .Values.name }}/. /
+requires:
+- category: step2
+  name: chroot
+  version: '>=0'
