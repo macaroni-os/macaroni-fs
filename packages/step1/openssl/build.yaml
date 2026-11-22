@@ -1,0 +1,35 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package (builder wget, as the rest of step1).
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://www.openssl.org/source/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+steps:
+# Cross-build with the pass-1 toolchain (LFS ch.6 style) into ${MFS}/usr.
+# --libdir=lib keeps the libraries in /usr/lib (no-multilib house layout).
+# The pass-1 binutils installs target tools UNPREFIXED under
+# cross-tools/${MFS_TARGET}/bin (documented in gcc-pass2), so AR/RANLIB/NM
+# must be passed explicitly or OpenSSL's prefixed invocations fail 127.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/${MFS_TARGET}/bin:${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./Configure linux-x86_64
+  --prefix=/usr
+  --openssldir=/etc/ssl
+  --libdir=lib
+  --cross-compile-prefix=${MFS_TARGET}-
+  no-tests no-docs &&
+  export AR=${MFS}/cross-tools/${MFS_TARGET}/bin/ar &&
+  export RANLIB=${MFS}/cross-tools/${MFS_TARGET}/bin/ranlib &&
+  export NM=${MFS}/cross-tools/${MFS_TARGET}/bin/nm &&
+  make AR=${AR} RANLIB=${RANLIB} NM=${NM} &&
+  make DESTDIR=${MFS} install_sw AR=${AR} RANLIB=${RANLIB} NM=${NM} &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install_sw AR=${AR} RANLIB=${RANLIB} NM=${NM}
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: xz
+  version: '>=0'

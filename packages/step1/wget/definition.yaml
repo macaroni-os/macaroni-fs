@@ -1,0 +1,9 @@
+name: wget
+version: 1.25.0
+category: step1
+description: 'MFS Step1: Wget (step2 source fetch tool)'
+uri:
+- https://www.gnu.org/software/wget/
+license: GPL-3.0-or-later
+labels:
+  original.package.version: '1.25.0'

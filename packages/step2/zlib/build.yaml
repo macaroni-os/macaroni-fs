@@ -1,0 +1,37 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Download the source only when step1/sources did not already carry it.
+- >-
+  if [ ! -f /sources/{{ .Values.name }}-{{ $v }}.tar.gz ]; then
+  wget -O /sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://zlib.net/fossils/{{ .Values.name }}-{{ $v }}.tar.gz ;
+  fi
+steps:
+# LFS-13.1 ch.7.10. Python's zlib module (and anything using gzip through
+# Python, like Portage) needs this before step2/python is built. Unpack in
+# /build and drop it before the final image.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /build /step2/{{ .Values.name }} &&
+  cd /build &&
+  tar -xzf /sources/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd /build/{{ .Values.name }}-{{ $v }} &&
+  ./configure --prefix=/usr &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  rm -fv /step2/{{ .Values.name }}/usr/lib/libz.a &&
+  cp -a /step2/{{ .Values.name }}/. / &&
+  rm -rf /build
+requires:
+- category: step2
+  name: perl
+  version: '>=0'

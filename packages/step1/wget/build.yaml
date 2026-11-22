@@ -1,0 +1,44 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+prelude:
+# Download and unpack the package (builder wget, as the rest of step1).
+- >-
+  wget -O ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+  https://ftp.gnu.org/gnu/wget/{{ .Values.name }}-{{ $v }}.tar.gz &&
+  cd ${MFS}/build/ &&
+  tar -xzf ${MFS}/sources/{{ .Values.name }}-{{ $v }}.tar.gz
+steps:
+# wget is the tool the step2 preludes use to fetch tarballs that step1/sources
+# does not carry, so it needs a TLS stack: openssl + the Mozilla bundle are
+# dependencies. --with-libssl-prefix bypasses pkg-config (not built in step1),
+# and --without-zlib/--without-libpsl/--without-libidn2 keep the dependency set
+# minimal; --disable-iri drops the IDN code paths that need libidn2. wget has
+# no compile-time CA-bundle option in 1.25, the chroot exports SSL_CERT_FILE
+# (OpenSSL reads it) pointing at the ca-certificates bundle.
+- >-
+  mkdir -p /step1/{{ .Values.name }}/ &&
+  export PATH=${MFS}/cross-tools/${MFS_TARGET}/bin:${MFS}/cross-tools/bin:${MFS}/tools/bin:/usr/bin:/bin &&
+  cd ${MFS}/build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --host=${MFS_TARGET}
+  --build=$(./build-aux/config.guess 2>/dev/null || echo x86_64-pc-linux-gnu)
+  --with-ssl=openssl
+  --with-libssl-prefix=${MFS}/usr
+  --without-zlib
+  --without-libpsl
+  --without-libidn2
+  --disable-nls
+  --disable-iri
+  CPPFLAGS="-I${MFS}/usr/include"
+  LDFLAGS="-L${MFS}/usr/lib"
+  CC=${MFS_TARGET}-gcc &&
+  make &&
+  make DESTDIR=${MFS} install &&
+  make DESTDIR="/step1/{{ .Values.name }}${MFS}" install
+# Avoid conflicts with /usr/share/info/dir (same rule as the other step1 tools).
+- rm -f /step1/{{ .Values.name }}${MFS}/usr/share/info/dir
+package_dir: /step1/{{ .Values.name }}/mfs
+requires:
+- category: step1
+  name: ca-certificates
+  version: '>=0'

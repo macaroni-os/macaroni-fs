@@ -1,0 +1,9 @@
+name: util-linux
+version: 2.42.4
+category: step2
+description: 'MFS Step2: Util-linux (temporary tools)'
+uri:
+- https://www.kernel.org/pub/linux/utils/util-linux/
+license: GPL-2.0-or-later
+labels:
+  original.package.version: '2.42.4'

@@ -1,0 +1,9 @@
+name: zlib
+version: '1.4'
+category: step2
+description: 'MFS Step2: Zlib (temporary tools)'
+uri:
+- https://zlib.net/
+license: Zlib
+labels:
+  original.package.version: '1.4'

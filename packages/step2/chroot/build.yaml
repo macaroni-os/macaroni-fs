@@ -5,6 +5,11 @@ env:
 - MFS_HOST={{ .Values.mfs_host }}
 - MFS_TARGET={{ .Values.mfs_target }}
 - MFS_ARCH={{ .Values.mfs_arch }}
+# The step1 cc1 was configured with GMP/MPFR/MPC from /cross-tools and needs
+# them at runtime; the chroot env must carry this for every consumer.
+- LD_LIBRARY_PATH=/cross-tools/lib
+# OpenSSL (and the tools built on it, like wget) reads the CA bundle from here.
+- SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 copy:
   - package:
       category: step2

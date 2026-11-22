@@ -1,0 +1,50 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Download the source only when step1/sources did not already carry it.
+- >-
+  if [ ! -f /sources/{{ .Values.name }}-{{ $v }}.tar.xz ]; then
+  wget -O /sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://www.kernel.org/pub/linux/utils/util-linux/v2.42/{{ .Values.name }}-{{ $v }}.tar.xz ;
+  fi
+steps:
+# LFS-13.1 ch.7.14. ADJTIME_PATH keeps the adjtime file in the FHS location;
+# --without-python avoids probing the just-built Python bindings. Unpack in
+# /build and drop it before the final image.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /build /step2/{{ .Values.name }}/var/lib/hwclock /var/lib/hwclock &&
+  cd /build &&
+  tar -xJf /sources/{{ .Values.name }}-{{ $v }}.tar.xz &&
+  cd /build/{{ .Values.name }}-{{ $v }} &&
+  ./configure
+  --libdir=/usr/lib
+  --runstatedir=/run
+  --disable-chfn-chsh
+  --disable-login
+  --disable-nologin
+  --disable-su
+  --disable-setpriv
+  --disable-runuser
+  --disable-pylibmount
+  --disable-static
+  --disable-liblastlog2
+  --without-python
+  ADJTIME_PATH=/var/lib/hwclock/adjtime
+  --docdir=/usr/share/doc/util-linux-{{ $v }} &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  cp -a /step2/{{ .Values.name }}/. / &&
+  rm -rf /build
+requires:
+- category: step2
+  name: texinfo
+  version: '>=0'

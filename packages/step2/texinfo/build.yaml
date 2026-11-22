@@ -1,0 +1,35 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Download the source only when step1/sources did not already carry it.
+- >-
+  if [ ! -f /sources/{{ .Values.name }}-{{ $v }}.tar.xz ]; then
+  wget -O /sources/{{ .Values.name }}-{{ $v }}.tar.xz
+  https://ftpmirror.gnu.org/{{ .Values.name }}/{{ .Values.name }}-{{ $v }}.tar.xz ;
+  fi
+steps:
+# LFS-13.1 ch.7.13. Unpack under /build and remove it before the final image.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /build /step2/{{ .Values.name }} &&
+  cd /build &&
+  tar -xJf /sources/{{ .Values.name }}-{{ $v }}.tar.xz &&
+  cd /build/{{ .Values.name }}-{{ $v }} &&
+  ./configure --prefix=/usr &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  rm -f /step2/{{ .Values.name }}/usr/share/info/dir &&
+  cp -a /step2/{{ .Values.name }}/. / &&
+  rm -rf /build
+requires:
+- category: step2
+  name: python
+  version: '>=0'

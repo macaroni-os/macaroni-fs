@@ -1,0 +1,43 @@
+{{- $v := ( index .Values.labels "original.package.version" ) }}
+env:
+- LC_ALL=POSIX
+package_dir: /step2/{{ .Values.name }}
+prelude:
+# Download the source only when step1/sources did not already carry it.
+- >-
+  if [ ! -f /sources/Python-{{ $v }}.tar.xz ]; then
+  wget -O /sources/Python-{{ $v }}.tar.xz
+  https://www.python.org/ftp/python/{{ $v }}/Python-{{ $v }}.tar.xz ;
+  fi
+steps:
+# LFS-13.1 ch.7.12 but on the 3.11 line instead of the book's 3.15.2.
+# Python 3.11 bundles libmpdec, so no separate mpdecimal package is needed;
+# --with-ensurepip=no replaces the book's --without-ensurepip wording.
+# zlib is built first (step2/zlib) so the zlib module is available for
+# Portage/Ego; ssl/sqlite3/ctypes stay missing at this stage because their
+# dependencies are built in a later phase. Unpack in /build and drop it.
+- >-
+  rm -rf /step2/{{ .Values.name }}/* &&
+  mkdir -p /build /step2/{{ .Values.name }} &&
+  cd /build &&
+  tar -xJf /sources/Python-{{ $v }}.tar.xz &&
+  cd /build/Python-{{ $v }} &&
+  ./configure
+  --prefix=/usr
+  --enable-shared
+  --with-ensurepip=no
+  --without-static-libpython &&
+{{- $makeopts := .Values.makeopts | default false }}
+{{- if $makeopts }}
+  export MAKEOPTS="{{ $makeopts }}" &&
+{{- else }}
+  export MAKEOPTS="-j$(nproc)" &&
+{{- end }}
+  make ${MAKEOPTS} &&
+  make ${MAKEOPTS} DESTDIR=/step2/{{ .Values.name }} install &&
+  cp -a /step2/{{ .Values.name }}/. / &&
+  rm -rf /build
+requires:
+- category: step2
+  name: zlib
+  version: '>=0'

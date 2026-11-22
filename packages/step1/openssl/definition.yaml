@@ -1,0 +1,9 @@
+name: openssl
+version: 3.5.9
+category: step1
+description: 'MFS Step1: OpenSSL (TLS for wget)'
+uri:
+- https://www.openssl.org/
+license: Apache-2.0
+labels:
+  original.package.version: '3.5.9'
